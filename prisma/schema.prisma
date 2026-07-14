@@ -1,0 +1,161 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations to content (Tenant/User scope)
+  portfolioSettings PortfolioSettings?
+  heroSection       HeroSection?
+  skillGroups       SkillGroup[]
+  skills            Skill[]
+  works             Work[]
+  clients           Client[]
+  services          Service[]
+  projects          Project[]
+  contacts          Contact[]
+  auditLogs         AuditHistory[]
+}
+
+model PortfolioSettings {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id])
+  primaryColor   String   @default("#000000")
+  secondaryColor String   @default("#FFFFFF")
+  toning         String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model HeroSection {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  name      String
+  nickname  String?
+  title     String
+  about     String   @db.Text
+  buttons   Json?    // e.g. [{ label: "Hire Me", link: "#contact" }]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SkillGroup {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  name      String
+  icon      String?
+  isVisible Boolean  @default(true)
+  order     Int      @default(0)
+  skills    Skill[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Skill {
+  id           String      @id @default(uuid())
+  userId       String
+  user         User        @relation(fields: [userId], references: [id])
+  skillGroupId String
+  skillGroup   SkillGroup  @relation(fields: [skillGroupId], references: [id], onDelete: Cascade)
+  name         String
+  icon         String?
+  level        Int?
+  isVisible    Boolean     @default(true)
+  order        Int         @default(0)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model Work {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  company     String
+  position    String
+  startDate   String
+  endDate     String?
+  description String   @db.Text
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Client {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  name      String
+  logoUrl   String?
+  url       String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Service {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  title       String
+  description String   @db.Text
+  icon        String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  title       String
+  description String   @db.Text
+  imageUrl    String?
+  gallery     String[] // Array of strings for gallery image URLs
+  link        String?
+  tags        String[] // Array of strings for tech stack
+  gridSize    String?  // e.g. "large", "small" for masonry grid
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Contact {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  email     String?
+  phone     String?
+  location  String?
+  socials   Json?    // e.g. { github: "url", linkedin: "url" }
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AuditHistory {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  action    String   // e.g. "UPDATE_HERO", "LOGIN"
+  details   Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+}
