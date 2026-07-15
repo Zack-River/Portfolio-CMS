@@ -24,7 +24,7 @@ router.use(authenticateToken);
 
 // Generic GET for user models (PortfolioSettings, HeroSection, etc.)
 router.get('/:model', async (req: AuthRequest, res) => {
-  const modelName = req.params.model;
+  const modelName = req.params.model as string;
   const userId = req.user.id;
   try {
     const data = await (prisma as any)[modelName].findMany({ where: { userId } });
@@ -36,7 +36,7 @@ router.get('/:model', async (req: AuthRequest, res) => {
 
 // Generic POST for models
 router.post('/:model', async (req: AuthRequest, res) => {
-  const modelName = req.params.model;
+  const modelName = req.params.model as string;
   const userId = req.user.id;
   try {
     const data = await (prisma as any)[modelName].create({
@@ -50,7 +50,7 @@ router.post('/:model', async (req: AuthRequest, res) => {
 
 // Generic PUT (update) for models
 router.put('/:model/:id', async (req: AuthRequest, res) => {
-  const { model, id } = req.params;
+  const { model, id } = req.params as { model: string; id: string };
   const userId = req.user.id;
   try {
     // Basic authorization check could be added here
@@ -66,7 +66,7 @@ router.put('/:model/:id', async (req: AuthRequest, res) => {
 
 // Generic DELETE for models
 router.delete('/:model/:id', async (req: AuthRequest, res) => {
-  const { model, id } = req.params;
+  const { model, id } = req.params as { model: string; id: string };
   try {
     await (prisma as any)[model].delete({
       where: { id }
@@ -79,7 +79,7 @@ router.delete('/:model/:id', async (req: AuthRequest, res) => {
 
 // Single items (HeroSection, PortfolioSettings) might need an upsert route
 router.put('/single/:model', async (req: AuthRequest, res) => {
-  const modelName = req.params.model;
+  const modelName = req.params.model as string;
   const userId = req.user.id;
   try {
     const existing = await (prisma as any)[modelName].findUnique({ where: { userId } });
