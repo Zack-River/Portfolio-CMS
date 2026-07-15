@@ -18,7 +18,7 @@ model User {
   name      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   // Relations to content (Tenant/User scope)
   portfolioSettings PortfolioSettings?
   heroSection       HeroSection?
@@ -29,7 +29,9 @@ model User {
   services          Service[]
   projects          Project[]
   contacts          Contact[]
+  messages          Message[]
   auditLogs         AuditHistory[]
+  NavItem           NavItem[]
 }
 
 model PortfolioSettings {
@@ -39,6 +41,9 @@ model PortfolioSettings {
   primaryColor   String   @default("#000000")
   secondaryColor String   @default("#FFFFFF")
   toning         String?
+  aboutText      String?  @db.Text
+  aboutImageUrl  String?
+  homeLayout     Json?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
@@ -51,7 +56,7 @@ model HeroSection {
   nickname  String?
   title     String
   about     String   @db.Text
-  buttons   Json?    // e.g. [{ label: "Hire Me", link: "#contact" }]
+  buttons   Json? // e.g. [{ label: "Hire Me", link: "#contact" }]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -70,18 +75,18 @@ model SkillGroup {
 }
 
 model Skill {
-  id           String      @id @default(uuid())
+  id           String     @id @default(uuid())
   userId       String
-  user         User        @relation(fields: [userId], references: [id])
+  user         User       @relation(fields: [userId], references: [id])
   skillGroupId String
-  skillGroup   SkillGroup  @relation(fields: [skillGroupId], references: [id], onDelete: Cascade)
+  skillGroup   SkillGroup @relation(fields: [skillGroupId], references: [id], onDelete: Cascade)
   name         String
   icon         String?
   level        Int?
-  isVisible    Boolean     @default(true)
-  order        Int         @default(0)
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  isVisible    Boolean    @default(true)
+  order        Int        @default(0)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 }
 
 model Work {
@@ -93,6 +98,9 @@ model Work {
   startDate   String
   endDate     String?
   description String   @db.Text
+  type        String   @default("WORK") // "WORK" | "EDUCATION"
+  isVisible   Boolean  @default(true)
+  tags        String[] // Array of strings
   order       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -105,6 +113,8 @@ model Client {
   name      String
   logoUrl   String?
   url       String?
+  review    String?  @db.Text
+  rating    Int      @default(5)
   order     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -117,25 +127,32 @@ model Service {
   title       String
   description String   @db.Text
   icon        String?
+  highlights  String[] // Array of strings
   order       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
 model Project {
-  id          String   @id @default(uuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  title       String
-  description String   @db.Text
-  imageUrl    String?
-  gallery     String[] // Array of strings for gallery image URLs
-  link        String?
-  tags        String[] // Array of strings for tech stack
-  gridSize    String?  // e.g. "large", "small" for masonry grid
-  order       Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  title         String
+  description   String   @db.Text
+  imageUrl      String?
+  gallery       String[] // Array of strings for gallery image URLs
+  link          String?
+  repo          String?
+  tags          String[] // Array of strings for tech stack
+  gridSize      String? // e.g. "large", "small" for masonry grid
+  featured      Boolean  @default(false)
+  featuredOrder Int      @default(0)
+  isVisible     Boolean  @default(true)
+  colSpan       Int      @default(1)
+  rowSpan       Int      @default(1)
+  order         Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Contact {
@@ -145,7 +162,7 @@ model Contact {
   email     String?
   phone     String?
   location  String?
-  socials   Json?    // e.g. { github: "url", linkedin: "url" }
+  socials   Json? // e.g. { github: "url", linkedin: "url" }
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -154,8 +171,34 @@ model AuditHistory {
   id        String   @id @default(uuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id])
-  action    String   // e.g. "UPDATE_HERO", "LOGIN"
+  action    String // e.g. "UPDATE_HERO", "LOGIN"
   details   Json?
   ipAddress String?
   createdAt DateTime @default(now())
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  name      String
+  email     String
+  service   String?
+  message   String   @db.Text
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model NavItem {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  label     String
+  sectionId String
+  icon      String?
+  isVisible Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

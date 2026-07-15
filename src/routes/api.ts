@@ -5,7 +5,8 @@ import {
   getPortfolioSkills,
   getPortfolioServices,
   getPortfolioWorksClients,
-  getPortfolioProjects
+  getPortfolioProjects,
+  saveContactMessage
 } from '../controllers/portfolioController';
 
 const router = Router();
@@ -16,6 +17,7 @@ router.get('/portfolio/skills', getPortfolioSkills);
 router.get('/portfolio/services', getPortfolioServices);
 router.get('/portfolio/works-clients', getPortfolioWorksClients);
 router.get('/portfolio/projects', getPortfolioProjects);
+router.post('/portfolio/contact', saveContactMessage);
 
 // Legacy monolithic route
 router.get('/portfolio', getPortfolioData);

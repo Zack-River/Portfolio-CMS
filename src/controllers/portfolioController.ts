@@ -6,13 +6,14 @@ export const getPortfolioFrame = async (req: Request, res: Response) => {
     const user = await prisma.user.findFirst();
     if (!user) return res.status(404).json({ message: 'No portfolio data found.' });
     
-    const [settings, hero, contacts] = await Promise.all([
+    const [settings, hero, contacts, navItems] = await Promise.all([
       prisma.portfolioSettings.findUnique({ where: { userId: user.id } }),
       prisma.heroSection.findUnique({ where: { userId: user.id } }),
-      prisma.contact.findMany({ where: { userId: user.id } })
+      prisma.contact.findMany({ where: { userId: user.id } }),
+      prisma.navItem.findMany({ where: { userId: user.id, isVisible: true }, orderBy: { order: 'asc' } })
     ]);
     
-    res.json({ settings, hero, contacts: contacts.length > 0 ? contacts[0] : null });
+    res.json({ settings, hero, contacts: contacts.length > 0 ? contacts[0] : null, navItems });
   } catch (error) {
     res.status(500).json({ message: 'Internal server error' });
   }
@@ -86,7 +87,17 @@ export const getPortfolioData = async (req: Request, res: Response) => {
 
     const userId = user.id;
 
-    const [settings, hero, skillGroups, works, clients, services, projects, contacts] = await Promise.all([
+    const [
+      settings,
+      hero,
+      skillGroups,
+      works,
+      clients,
+      services,
+      projects,
+      contacts,
+      navItems
+    ] = await Promise.all([
       prisma.portfolioSettings.findUnique({ where: { userId } }),
       prisma.heroSection.findUnique({ where: { userId } }),
       prisma.skillGroup.findMany({ 
@@ -103,7 +114,8 @@ export const getPortfolioData = async (req: Request, res: Response) => {
       prisma.client.findMany({ where: { userId }, orderBy: { order: 'asc' } }),
       prisma.service.findMany({ where: { userId }, orderBy: { order: 'asc' } }),
       prisma.project.findMany({ where: { userId }, orderBy: { order: 'asc' } }),
-      prisma.contact.findMany({ where: { userId } })
+      prisma.contact.findMany({ where: { userId } }),
+      prisma.navItem.findMany({ where: { userId, isVisible: true }, orderBy: { order: 'asc' } })
     ]);
 
     res.json({
@@ -114,10 +126,39 @@ export const getPortfolioData = async (req: Request, res: Response) => {
       clients,
       services,
       projects,
-      contacts: contacts.length > 0 ? contacts[0] : null
+      contacts: contacts.length > 0 ? contacts[0] : null,
+      navItems
     });
   } catch (error) {
     console.error('Error fetching portfolio data:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const saveContactMessage = async (req: Request, res: Response) => {
+  try {
+    const user = await prisma.user.findFirst();
+    if (!user) return res.status(404).json({ message: 'No portfolio data found.' });
+
+    const { name, email, service, message } = req.body;
+    
+    if (!name || !email || !message) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    const newMessage = await prisma.message.create({
+      data: {
+        userId: user.id,
+        name,
+        email,
+        service,
+        message
+      }
+    });
+
+    res.json({ success: true, message: 'Message saved successfully', data: newMessage });
+  } catch (error) {
+    console.error('Error saving contact message:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };

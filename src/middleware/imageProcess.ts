@@ -16,11 +16,18 @@ export const processImageToWebp = async (req: Request, res: Response, next: Next
   }
 
   try {
+    let folderPath = 'portfolio';
+    if (req.params.model) {
+      folderPath = `portfolio/${req.params.model}`;
+    } else if (req.path.includes('/settings/about')) {
+      folderPath = `portfolio/about`;
+    }
+
     const uploadFromBuffer = (buffer: Buffer) => {
       return new Promise<any>((resolve, reject) => {
         const cld_upload_stream = cloudinary.uploader.upload_stream(
           {
-            folder: 'portfolio',
+            folder: folderPath,
             public_id: uuidv4(),
             resource_type: 'image',
           },
